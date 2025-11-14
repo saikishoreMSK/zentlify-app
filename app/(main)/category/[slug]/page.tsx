@@ -41,16 +41,19 @@ async function getProductsForBrowsing(query: string, categoryId: string, page: n
     return res.json();
 }
 
-export default async function CategorySearchPage({ 
-    params, 
-    searchParams 
-}: { 
-    params: { slug?: string }; 
-    searchParams: { q?: string, page?: string } 
+export default async function CategorySearchPage({
+    params: paramsPromise,
+    searchParams: searchParamsPromise,
+}: {
+    params: Promise<{ slug: string }>;
+    searchParams: Promise<{ q?: string, page?: string }>;
 }) {
-    const currentPage = parseInt(searchParams.page || '1', 10);
-    const query = searchParams.q || '';
-    const categorySlug = params.slug || 'all'; // Default to 'all' if no slug is present
+    const { slug: categorySlug } = await paramsPromise;
+    const { q: query = '', page: pageString = '1' } = await searchParamsPromise;
+    const currentPage = parseInt(pageString, 10);
+
+    // ... the rest of your component logic continues here
+
 
     // Determine the type of view and the data fetching parameters
     const isSearch = !!query;

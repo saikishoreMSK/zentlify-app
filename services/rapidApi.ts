@@ -30,14 +30,29 @@ const mapToMinimalProduct = (apiProduct: any): MinimalProduct => ({
  * 1. Fetches products for the Home Page Carousels or Category Page Grid.
  */
 export async function fetchProductsByCategory(categoryId: string, page: number = 1): Promise<MinimalProduct[]> {
-    const url = `${BASE_URL}/products-by-category?category_id=${categoryId}&page=${page}&country=US`;
-    
+    let url: string;
+
+    // The 'bestsellers' category uses a different endpoint and parameter structure.
+    if (categoryId === 'bestsellers') {
+        // The API docs state this endpoint uses a 'type' parameter.
+        // It also requires a category. We'll default to 'all' for a general list.
+        url = `${BASE_URL}/best-sellers?category=all&type=BEST_SELLERS&page=${page}&country=US`;
+    } else {
+        // All other categories use the standard endpoint.
+        url = `${BASE_URL}/products-by-category?category_id=${categoryId}&page=${page}&country=US`;
+    }
+
     try {
         const response = await fetch(url, { headers: API_HEADERS, cache: 'no-store' });
         const data = await response.json();
 
-        // The product list is inside data.data.products
-        const rawProducts = data.data?.products || [];
+        // The API has different response structures.
+        // For /best-sellers, the list is in `data.data.best_sellers`.
+        // For other category calls, it's in `data.data.products`.
+        const rawProducts = 
+            data.data?.best_sellers || // Check for bestsellers list first
+            data.data?.products ||     // Fallback to the standard products list
+            [];                        // Default to an empty array if neither exists
         return rawProducts.map(mapToMinimalProduct);
 
     } catch (error) {
@@ -56,8 +71,10 @@ export async function fetchProductsBySearch(query: string, page: number = 1): Pr
         const response = await fetch(url, { headers: API_HEADERS, cache: 'no-store' });
         const data = await response.json();
 
-        // The product list is inside data.data.products
+        // This was a bug. The search endpoint response is in `data.data.products`.
+        // The logic for `best_sellers` does not belong here.
         const rawProducts = data.data?.products || [];
+
         return rawProducts.map(mapToMinimalProduct);
 
     } catch (error) {

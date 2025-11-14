@@ -9,9 +9,14 @@ const CACHE_TTL_SECONDS = 60 * 60 * 12;
 
 export async function GET(
     request: NextRequest, 
-    { params }: { params: { asin: string } }
+    context: { params: Promise<{ asin: string }> }
 ) {
-    const asin = params.asin;
+    const { asin } = await context.params;
+    
+    if (!asin) {
+        return new NextResponse('ASIN parameter is missing', { status: 400 });
+    }
+
     const cacheKey = `product:detail:${asin}`;
 
     // 1. CHECK CACHE

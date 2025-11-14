@@ -5,6 +5,7 @@ import { DetailedProduct, MinimalProduct } from '@/types/product';
 import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/components/feature/ProductCard';
+import AffiliateButton from '@/components/ui/AffiliateButton';
 
 // Utility to get the base URL for internal server-to-server calls
 function getAbsoluteUrl(path: string): string {
@@ -26,8 +27,9 @@ async function getProductDetails(asin: string): Promise<DetailedProduct | null> 
 }
 
 // Next.js convention for dynamic routes
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-    const product = await getProductDetails(params.id);
+export default async function ProductDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+    const { id } = await paramsPromise;
+    const product = await getProductDetails(id);
 
     if (!product) {
         return (
@@ -61,15 +63,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                             {product.price}
                         </span>
                         {/* CRITICAL AFFILIATE ACTION BUTTON */}
-                        <Link
-                            href={product.productUrl} 
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-brand-accent text-white font-bold py-3 px-6 rounded-full 
-                                       text-lg shadow-lg hover:shadow-xl transition-transform active:scale-95"
-                        >
-                            Buy on Amazon
-                        </Link>
+                        <AffiliateButton url={product.productUrl} />
                     </div>
                 </div>
 
